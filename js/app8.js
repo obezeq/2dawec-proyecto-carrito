@@ -6,6 +6,7 @@ const contenedorCarrito = document.querySelector('#lista-carrito tbody')
 const vaciarCarritoBtn = document.querySelector('#vaciar-carrito')
 const listaCursos = document.querySelector('#lista-cursos')
 let articulosCarrito = []
+const myStorage = window.localStorage;
 
 
 //  *** Listeners *** 
@@ -29,6 +30,7 @@ function añadirCurso(e) {
     e.preventDefault()  
     if (e.target.classList.contains('agregar-carrito')) {  
         const curso = e.target.parentElement.parentElement 
+        console.log(curso);
         leerDatosCurso(curso)
     }
  }
@@ -40,6 +42,29 @@ function añadirCurso(e) {
         articulosCarrito = articulosCarrito.filter((curso) => curso.id !== cursoId)
         carritoHTML(articulosCarrito)
     }
+ }
+
+ const saveArticulosCarrito = (articulosCarrito) => {
+    let storageArticulosCarrito = localStorage.getItem("articulosCarrito")
+    let myArticulosCarrito = storageArticulosCarrito ? JSON.parse(storageArticulosCarrito) : [];
+
+    if (myArticulosCarrito) {
+        /*
+        Ya tenemos articulos en el carrito del localStorage entonces tenemos que 
+        obtenerlos para luego hacer un push con los nuevos articulos que queremos añadir
+        */
+
+        let myArticulosCarrito = JSON.parse(storageArticulosCarrito);
+        myArticulosCarrito = [...myArticulosCarrito, ...articulosCarrito]
+        localStorage.setItem("articulosCarrito", JSON.stringify(myArticulosCarrito));
+
+    } else {
+        // Nunca ha añadido nada al localStorage => cargamos directamente el Array articulosCarrito
+
+        // let myArticulosCarrito = Array.of(articulosCarrito);
+        localStorage.setItem("articulosCarrito", JSON.stringify(articulosCarrito));
+    }
+
  }
 
  // Lee la información del curso seleccionado.
@@ -56,8 +81,10 @@ function añadirCurso(e) {
         const cursos = articulosCarrito.map((curso) => {
             if (curso.id === infoCurso.id) {
                 curso.cantidad ++
+                console.log(curso)
                 return curso 
             } else {
+                console.log(curso)
                 return curso
             }
         })
@@ -65,13 +92,20 @@ function añadirCurso(e) {
     } else {
         articulosCarrito = [...articulosCarrito, infoCurso]
     }
+    saveArticulosCarrito(articulosCarrito)
     carritoHTML(articulosCarrito)
+ }
+
+ const getArticulosCarrito = () => {
+    const storageArticulosCarrito = Array.of(localStorage.getItem("articulosCarrito"));
+    return storageArticulosCarrito;
  }
 
  // Muestra el carrito de compras en el HTML
  function carritoHTML() {
     limpiarHTML()
-    articulosCarrito.forEach((curso) => {
+    let storageArticulosCarrito = getArticulosCarrito();
+    storageArticulosCarrito.forEach((curso) => {
         const {imagen, titulo, precio, cantidad, id} = curso
         const row = document.createElement('tr')
         row.innerHTML = `
